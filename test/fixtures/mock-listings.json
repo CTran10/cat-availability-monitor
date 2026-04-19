@@ -1,0 +1,12 @@
+[
+  {
+    "animalId": "A999001",
+    "detailUrl": "https://animalshelter.adcogov.org/mock/pudding",
+    "name": "Pudding"
+  },
+  {
+    "animalId": "A999002",
+    "detailUrl": "https://animalshelter.adcogov.org/mock/not-pudding",
+    "name": "Waffles"
+  }
+]

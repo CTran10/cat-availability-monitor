@@ -1,0 +1,17 @@
+{
+  "name": "pudding-shelter-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node src/check-pudding.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.13",
+    "playwright": "^1.44.0"
+  }
+}
