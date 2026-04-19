@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -198,6 +198,7 @@ export function getConfig() {
   return {
     animalType: process.env.ANIMAL_TYPE || DEFAULTS.animalType,
     dryRun: /^(1|true|yes)$/i.test(process.env.DRY_RUN || ""),
+    headless: !/^(0|false|no)$/i.test(process.env.HEADLESS || "true"),
     matchName: process.env.MATCH_NAME || DEFAULTS.matchName,
     mockListingsFile: process.env.MOCK_LISTINGS_FILE || "",
     notifyFrom: process.env.NOTIFY_FROM || process.env.SMTP_USER || "",
@@ -253,7 +254,7 @@ export async function loadMockListings(mockListingsFile) {
 }
 
 export async function selectAnimalType(page, animalType) {
-  await page.waitForSelector("select", { timeout: 20000 });
+  await page.waitForSelector("select", { timeout: 45000 });
 
   const selects = page.locator("select");
   const total = await selects.count();
@@ -367,12 +368,12 @@ export async function extractListingsFromPage(page) {
 export async function fetchLiveListings(config) {
   const { chromium } = await import("playwright");
   const browser = await chromium.launch({
-    headless: true
+    headless: config.headless
   });
 
   try {
     const page = await browser.newPage();
-    page.setDefaultTimeout(20000);
+    page.setDefaultTimeout(45000);
 
     await page.goto(config.targetUrl, {
       waitUntil: "domcontentloaded"
@@ -391,9 +392,30 @@ export async function fetchLiveListings(config) {
     }
 
     return listings;
+  } catch (error) {
+    const page = (await browser.contexts()[0]?.pages?.())?.[0];
+    if (page) {
+      await writeDebugArtifacts(page);
+    }
+
+    throw error;
   } finally {
     await browser.close();
   }
+}
+
+async function writeDebugArtifacts(page) {
+  const debugDir = resolveFromRoot(".debug");
+  const timestamp = new Date().toISOString().replaceAll(":", "-");
+  const screenshotPath = path.join(debugDir, `failure-${timestamp}.png`);
+  const htmlPath = path.join(debugDir, `failure-${timestamp}.html`);
+
+  await mkdir(debugDir, { recursive: true });
+  await page.screenshot({ fullPage: true, path: screenshotPath }).catch(() => {});
+  await writeFile(htmlPath, await page.content(), "utf8").catch(() => {});
+
+  console.error(`Saved debug screenshot to ${screenshotPath}`);
+  console.error(`Saved debug HTML to ${htmlPath}`);
 }
 
 function validateEmailConfig(config) {

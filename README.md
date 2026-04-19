@@ -42,6 +42,14 @@ DRY_RUN=true MOCK_LISTINGS_FILE=test/fixtures/mock-listings.json npm run check
 
 `DRY_RUN=true` skips both email sending and state writes.
 
+If the live shelter page is behaving differently under automation, run in a visible browser and let the script save failure artifacts:
+
+```bash
+HEADLESS=false DRY_RUN=true MATCH_NAME="Kelly R" npm run check
+```
+
+On a live-page failure, the script writes a screenshot and page HTML into `.debug/`.
+
 ## GitHub Actions setup
 
 Push this project to a GitHub repository, then add these repository secrets:

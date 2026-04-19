@@ -37,6 +37,16 @@ jobs:
           NOTIFY_FROM: ${{ secrets.NOTIFY_FROM }}
         run: npm run check
 
+      - name: Upload debug artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pudding-debug-artifacts
+          path: .debug/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Commit updated seen state
         run: |
           if [ -z "$(git status --porcelain -- .data/seen-listings.json)" ]; then
